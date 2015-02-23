@@ -3,11 +3,10 @@
 
 package fitnesse.wiki;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-public interface WikiPage extends Serializable, Comparable<Object> {
+public interface WikiPage extends Comparable<Object> {
 
   WikiPage getParent();
 
