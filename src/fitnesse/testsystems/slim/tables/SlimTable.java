@@ -387,6 +387,10 @@ public abstract class SlimTable {
       super(col, row, table.getCellContents(col, row));
     }
 
+    public ReturnedValueExpectation(int col, int row, String expected) {
+        super(col, row, expected);
+	}
+
     @Override
     protected SlimTestResult createEvaluationMessage(String actual, String expected) {
       SlimTestResult testResult;
@@ -414,11 +418,16 @@ public abstract class SlimTable {
   }
 
   class ReturnedSymbolExpectation extends ReturnedValueExpectation {
-	  private String symbolName;
-	  private String assignToName = null;
-	  public ReturnedSymbolExpectation(int col, int row, String symbolName) {
+    private String symbolName;
+    private String assignToName = null;
+    public ReturnedSymbolExpectation(int col, int row, String symbolName) {
       super(col, row);
-		  this.symbolName = symbolName;
+      this.symbolName = symbolName;
+    }
+
+    public ReturnedSymbolExpectation(String expected, int col, int row, String symbolName) {
+      super(col, row, expected);
+      this.symbolName = symbolName;
     }
 
     public ReturnedSymbolExpectation(int col, int row, String symbolName, String assignToName) {

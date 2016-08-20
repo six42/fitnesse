@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fitnesse.slim.instructions.CallInstruction;
 import fitnesse.slim.instructions.Instruction;
 import fitnesse.testsystems.TestExecutionException;
 import fitnesse.testsystems.slim.SlimTestContext;
@@ -17,7 +16,7 @@ public class DecisionTable extends SlimTable {
   private static final String instancePrefix = "decisionTable";
   protected MethodExtractor setterMethodExtractor;
   protected MethodExtractor getterMethodExtractor;
-
+  protected boolean baselineDecisionTable = false;
   
   public DecisionTable(Table table, String id, SlimTestContext context) {
     super(table, id, context);
@@ -40,14 +39,14 @@ public class DecisionTable extends SlimTable {
     if (scenario != null) {
       return new ScenarioCaller().call(scenario);
     } else {
-      scenarioName =getFixtureName();
-      scenario = getTestContext().getScenario(scenarioName);
+      String fixtureName =getFixtureName();
+      scenario = getTestContext().getScenario(fixtureName);
       if (scenario != null) {
         return new ScenarioCallerWithConstuctorParameters().call(scenario);
       } else {
        	setterMethodExtractor = prepareMethodExtractorIfNull(setterMethodExtractor,"SLIM_DT_SETTER");
        	getterMethodExtractor = prepareMethodExtractorIfNull(getterMethodExtractor,"SLIM_DT_GETTER");
-       	return new FixtureCaller().call(getFixtureName());
+       	return new FixtureCaller().call(fixtureName);
       }
     }
   }
@@ -89,7 +88,7 @@ public class DecisionTable extends SlimTable {
 
   private class ScenarioCaller extends DecisionTableCaller {
     public ScenarioCaller() {
-      super(table);
+      super(table, isBaselineDecisionTable());
     }
 
     public ArrayList<SlimAssertion> call(ScenarioTable scenario) throws TestExecutionException {
@@ -124,7 +123,7 @@ public class DecisionTable extends SlimTable {
         	assertion= makeAssertion(callAndAssign(assignedSymbol, "scriptTable" + "Actor", "cloneSymbol", "$"+name),
         			new ReturnedSymbolExpectation(col, row, name, assignedSymbol));
         } else {
-          assertion = makeAssertion(Instruction.NOOP_INSTRUCTION, new ReturnedSymbolExpectation(col, row, name));
+          assertion = makeAssertion(Instruction.NOOP_INSTRUCTION, new ReturnedSymbolExpectation(getDTCellContents(col, row), col, row, name));
         }
         return assertion;
       }
@@ -141,7 +140,7 @@ public class DecisionTable extends SlimTable {
       for (String var : varStore.getLeftToRightAndResetColumnNumberIterator()) {
         String disgracedVar = Disgracer.disgraceMethodName(var);
         int col = varStore.getColumnNumber(var);
-        String valueToSet = table.getCellContents(col, row);
+        String valueToSet = getDTCellContents(col, row);
         scenarioArguments.put(disgracedVar, valueToSet);
       }
       return scenarioArguments;
@@ -157,7 +156,7 @@ public class DecisionTable extends SlimTable {
 
   private class FixtureCaller extends DecisionTableCaller {
     public FixtureCaller() {
-      super(table);
+      super(table,isBaselineDecisionTable() );
     }
 
     public List<SlimAssertion> call(String fixtureName) throws SyntaxError {
@@ -220,8 +219,8 @@ public class DecisionTable extends SlimTable {
         assertion = makeAssertion(callAndAssign(assignedSymbol, getTableName(), functionName, args),
                 new SymbolAssignmentExpectation(assignedSymbol, col, row));
       } else {
-        assertion = makeAssertion(callFunction(getTableName(), functionName, args),
-                new ReturnedValueExpectation(col, row));
+         assertion = makeAssertion(callFunction(getTableName(), functionName, args),
+                new ReturnedValueExpectation(col, row, getDTCellContents(col, row)));
       }
       return assertion;
     }
@@ -230,7 +229,7 @@ public class DecisionTable extends SlimTable {
       List<SlimAssertion> assertions = new ArrayList<SlimAssertion>();
       for (String var : varStore.getLeftToRightAndResetColumnNumberIterator()) {
         int col = varStore.getColumnNumber(var);
-        String valueToSet = table.getCellContents(col, row);
+        String valueToSet = getDTCellContents(col, row);
 
         Object[] args = new Object[] {valueToSet};
    	    MethodExtractorResult extractedSetter =  setterMethodExtractor.findRule(var);
@@ -249,4 +248,17 @@ public class DecisionTable extends SlimTable {
       return assertions;
     }
   }
+
+  boolean isBaselineDecisionTable() {
+    String useFirstDataRowForEmpty = null;
+    useFirstDataRowForEmpty = this.getTestContext().getPageToTest().getVariable("SLIM_DT_BASELINE");
+    return ((useFirstDataRowForEmpty != null && !useFirstDataRowForEmpty.isEmpty())
+		  || baselineDecisionTable);
+  }
+
+
+  void setBaselineDecisionTable(boolean baselineDecisionTable) {
+    this.baselineDecisionTable = baselineDecisionTable;
+  }
+
 }
