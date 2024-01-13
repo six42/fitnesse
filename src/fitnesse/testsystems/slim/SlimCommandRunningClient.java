@@ -192,6 +192,9 @@ public class SlimCommandRunningClient implements SlimClient {
       @SuppressWarnings("unchecked")
       List<Object> resultList = (List<Object>) aResult;
       map.put((String) resultList.get(0), resultList.get(1));
+      if(resultList.size() >2){
+        System.out.print(resultList.get(2));
+      }
     }
     return map;
   }

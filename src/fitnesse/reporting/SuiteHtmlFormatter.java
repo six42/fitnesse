@@ -4,6 +4,7 @@ package fitnesse.reporting;
 
 import fitnesse.html.HtmlTag;
 import fitnesse.html.HtmlUtil;
+import fitnesse.testsystems.ExecutionLogListener;
 import fitnesse.testsystems.ExecutionResult;
 import fitnesse.testsystems.TestPage;
 import fitnesse.testsystems.TestSummary;
@@ -18,7 +19,7 @@ import java.io.Writer;
 
 import static fitnesse.testsystems.ExecutionResult.getExecutionResult;
 
-public class SuiteHtmlFormatter extends InteractiveFormatter implements Closeable {
+public class SuiteHtmlFormatter extends InteractiveFormatter implements Closeable, ExecutionLogListener {
   private static final String TEST_SUMMARIES_ID = "test-summaries";
 
   private TestSummary pageCounts = new TestSummary();
@@ -31,7 +32,8 @@ public class SuiteHtmlFormatter extends InteractiveFormatter implements Closeabl
   private String testSummariesId = TEST_SUMMARIES_ID;
   private boolean testSummariesPresent;
   private TimeMeasurement totalTimeMeasurement;
-
+  private String stdOutText ="";
+  private String stdErrText ="";
 
   public SuiteHtmlFormatter(WikiPage page, boolean testSummariesPresent, Writer writer) {
     super(page, writer);
@@ -154,6 +156,8 @@ public class SuiteHtmlFormatter extends InteractiveFormatter implements Closeabl
 
   @Override
   public void testOutputChunk(String output) {
+    output= stdOutText + output;
+    stdOutText="";
     writeData(output);
   }
 
@@ -169,14 +173,18 @@ public class SuiteHtmlFormatter extends InteractiveFormatter implements Closeabl
 
   @Override
   public void testSystemStarted(TestSystem testSystem) {
-    if (hasTestSummaries()) {
-      testSystemName = testSystem.getName();
-      testSummariesId = "test-system-" + testSystemName;
+    testSystemName = testSystem.getName();
+    testSummariesId = "test-system-" + testSystemName;
+  if (hasTestSummaries()) {
       String tag = String.format("<h3>%s</h3>\n<ul id=\"%s\"></ul>", testSystemName, testSummariesId);
       HtmlTag insertScript = JavascriptUtil.makeAppendElementScript(TEST_SUMMARIES_ID, tag);
       writeData(insertScript.html());
+
     }
-  }
+    String tag2 = String.format("<h3>%s</h3>\n<ul id=\"%s\"></ul>", "StdOut", testSummariesId+"so");
+    //HtmlTag insertScript2 = JavascriptUtil.makeAppendElementScript(TEST_SUMMARIES_ID, tag2);
+    writeData(tag2);
+}
 
   @Override
   protected String makeSummaryContent() {
@@ -191,6 +199,42 @@ public class SuiteHtmlFormatter extends InteractiveFormatter implements Closeabl
 
   protected boolean hasTestSummaries() {
     return testSummariesPresent;
+  }
+
+  @Override
+  public void commandStarted(ExecutionContext context) {
+    // TODO Auto-generated method stub
+    //throw new UnsupportedOperationException("Unimplemented method 'commandStarted'");
+  }
+
+  @Override
+  public void stdOut(String output) {
+    // TODO Auto-generated method stub
+    //stdOutText = stdOutText + output;
+    //HtmlTag insertScript = JavascriptUtil.makeAppendElementScript(testSummariesId+"so", output);
+    //writeData(insertScript.html());
+    writeData(output);
+    //throw new UnsupportedOperationException("Unimplemented method 'stdOut'");
+  }
+
+  @Override
+  public void stdErr(String output) {
+    // TODO Auto-generated method stub
+    //stdErrText = stdErrText + output;
+    writeData(output);
+    //throw new UnsupportedOperationException("Unimplemented method 'stdErr'");
+  }
+
+  @Override
+  public void exitCode(int exitCode) {
+    // TODO Auto-generated method stub
+    //throw new UnsupportedOperationException("Unimplemented method 'exitCode'");
+  }
+
+  @Override
+  public void exceptionOccurred(Throwable e) {
+    // TODO Auto-generated method stub
+    //throw new UnsupportedOperationException("Unimplemented method 'exceptionOccurred'");
   }
 }
 

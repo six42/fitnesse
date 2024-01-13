@@ -53,7 +53,7 @@ public class ListExecutor {
       } else {
         resultObject = null;
       }
-      return asList(instruction.getId(), resultObject);
+      return asList(instruction.getId(), resultObject, statement);
     }
 
     public void finalizeExecution() {
