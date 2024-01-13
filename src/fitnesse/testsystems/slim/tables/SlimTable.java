@@ -16,6 +16,7 @@ import fitnesse.testsystems.TestExecutionException;
 import fitnesse.testsystems.TestResult;
 import fitnesse.testsystems.slim.CustomComparator;
 import fitnesse.testsystems.slim.CustomComparatorRegistry;
+import fitnesse.testsystems.slim.HtmlTable;
 import fitnesse.testsystems.slim.SlimTestContext;
 import fitnesse.testsystems.slim.Table;
 import fitnesse.testsystems.slim.results.SlimExceptionResult;
@@ -29,7 +30,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.htmlparser.Tag;
+
 import static fitnesse.testsystems.slim.tables.ComparatorUtil.approximatelyEqual;
+import static fitnesse.wikitext.parser.decorator.SymbolClassPropertyAppender.classPropertyAppender;
 
 public abstract class SlimTable {
 
@@ -53,6 +57,12 @@ public abstract class SlimTable {
     this.table = table;
     this.testContext = testContext;
     tableName = getTableType() + "_" + id;
+    //classPropertyAppender().addPropertyValue(table, tableName)
+    if (table instanceof HtmlTable) {
+      HtmlTable ht = (HtmlTable) table;
+      Tag tag = ht.getTableNode();
+      tag.setAttribute("class", tableName);
+    }
   }
 
   public SlimTable getParent() {
