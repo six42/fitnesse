@@ -1,6 +1,8 @@
 package fitnesse.slim.fixtureInteraction;
 
 import fitnesse.slim.MethodExecutionResult;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -11,7 +13,10 @@ import static org.junit.Assert.assertEquals;
  * Micro benchmark to see how interactions compare.
  * A benchmark like this proves almost nothing about real usage, but gives an indication
  * about relative speed.
+ * 
+ * As this is one of the longest running tests it is skipped by default
  */
+@Ignore
 public class InteractionBenchmark {
 
   @Test
